@@ -1,6 +1,6 @@
 %define	name	mpich
 %define	version 1.2.5.2
-%define release	9mdk
+%define release	%mkrel 10
 %define	lib_name_orig	lib%{name}
 %define	lib_major	1
 %define	lib_name	%mklibname %{name} %{lib_major}
@@ -24,7 +24,7 @@ Patch7:		%{name}-1.2.5-mpiinstall-lib64.patch.bz2
 Patch8:		%{name}-1.2.5-mpeinstall-lib64.patch.bz2
 URL: 		http://www-unix.mcs.anl.gov/mpi/mpich/
 License:	BSD-style 
-Group: 		Cluster/Message Passing
+Group: 		System/Cluster
 BuildRoot: 	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 Requires: 	rsh, xinetd, rsh-server, %{lib_name} = %{version}-%{release}
 PreReq:		rpm-helper
