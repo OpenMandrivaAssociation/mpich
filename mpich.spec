@@ -7,7 +7,7 @@
 %define	mpihome		%{_localstatedir}/mpi
 
 Name: 		%{name}
-Summary: 	MPICH is a portable implementation of MPI.
+Summary: 	MPICH is a portable implementation of MPI
 Version: 	%{version}
 Release: 	%{release}
 Source0: 	%{name}-%{version}.tar.bz2
