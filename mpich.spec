@@ -26,7 +26,7 @@ URL: 		http://www-unix.mcs.anl.gov/mpi/mpich/
 License:	BSD-style 
 Group: 		System/Cluster
 Requires: 	rsh, xinetd, rsh-server, %{lib_name} = %{version}-%{release}
-PreReq:		rpm-helper
+Requires(post,preun):	rpm-helper
 BuildRequires:	gcc >= 3.2, gcc3.3-g77 >= 3.2
 
 %description
