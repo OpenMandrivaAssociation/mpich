@@ -25,6 +25,7 @@ Patch8:		%{name}-1.2.5-mpeinstall-lib64.patch.bz2
 URL: 		http://www-unix.mcs.anl.gov/mpi/mpich/
 License:	BSD-style 
 Group: 		System/Cluster
+BuildRoot: 	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
 Requires: 	rsh, xinetd, rsh-server, %{lib_name} = %{version}-%{release}
 Requires(post,preun):	rpm-helper
 BuildRequires:	gcc >= 3.2, gcc3.3-g77 >= 3.2
