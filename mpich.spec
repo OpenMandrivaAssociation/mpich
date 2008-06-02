@@ -4,7 +4,7 @@
 %define	lib_name_orig	lib%{name}
 %define	lib_major	1
 %define	lib_name	%mklibname %{name} %{lib_major}
-%define	mpihome		%{_localstatedir}/mpi
+%define	mpihome		%{_localstatedir}/lib/mpi
 
 Name: 		%{name}
 Summary: 	Portable implementation of MPI
