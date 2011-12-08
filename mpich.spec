@@ -212,17 +212,17 @@ rm -rf $RPM_BUILD_ROOT
 export MPICH_INCLUDE_PROFLIB="yes"
 
 #Changing libdir for compilators
-for i in $(ls $RPM_BUILD_DIR/%{name}-%{version}/bin/mpi*); do
+for i in $(ls %{_builddir}/%{name}-%{version}/bin/mpi*); do
 perl -pi -e "s|libdir=/usr/lib|libdir=$RPM_BUILD_ROOT/usr/lib|" $i
 done
 
 #Patching UseSharedLib for using libmpichfarg by default
-perl -pi -e 's|UseSharedLib\=\$\{MPICH_USE_SHLIB\-no\}|UseSharedLib\=yes|' $RPM_BUILD_DIR/%{name}-%{version}/bin/mpif77
-perl -pi -e 's|UseSharedLib\=\$\{MPICH_USE_SHLIB\-no\}|UseSharedLib\=yes|' $RPM_BUILD_DIR/%{name}-%{version}/src/fortran/src/mpif77
+perl -pi -e 's|UseSharedLib\=\$\{MPICH_USE_SHLIB\-no\}|UseSharedLib\=yes|' %{_builddir}/%{name}-%{version}/bin/mpif77
+perl -pi -e 's|UseSharedLib\=\$\{MPICH_USE_SHLIB\-no\}|UseSharedLib\=yes|' %{_builddir}/%{name}-%{version}/src/fortran/src/mpif77
 
 
 #Patching prefix for mpd
-#perl -pi -e "s|exec_prefix \=.*|exec_prefix \=$RPM_BUILD_ROOT/usr/|" $RPM_BUILD_DIR/%{name}-%{version}/mpid/mpd/Makefile
+#perl -pi -e "s|exec_prefix \=.*|exec_prefix \=$RPM_BUILD_ROOT/usr/|" %{_builddir}/%{name}-%{version}/mpid/mpd/Makefile
 
 
 make install "PREFIX=$RPM_BUILD_ROOT%{_prefix}\
@@ -238,7 +238,7 @@ perl -pi -e "s|libdir=$RPM_BUILD_ROOT/usr/lib|libdir=/usr/lib|" $i
 done
 
 #Activiating PMPI patches
-for i in $(ls $RPM_BUILD_DIR/%{name}-%{version}/bin/*); do
+for i in $(ls %{_builddir}/%{name}-%{version}/bin/*); do
 perl -pi -e 's|MPI_WITH_PMPI\=.*|MPI_WITH_PMPI\=\"yes\" \n
 MPICH_INCLUDE_PROFLIB\=\"yes\" \n|' $i
 done
@@ -265,14 +265,14 @@ perl -pi -e "s|$HOSTNAME||g" "$RPM_BUILD_ROOT%{_datadir}/mpich/machines.LINUX"
 mkdir -p $RPM_BUILD_ROOT%{_docdir}
 mkdir -p $RPM_BUILD_ROOT/%{mpihome}
 
-install -m644 %{SOURCE1} $RPM_BUILD_DIR/%{name}-%{version}/rhosts
+install -m644 %{SOURCE1} %{_builddir}/%{name}-%{version}/rhosts
 
 mkdir -p $RPM_BUILD_ROOT/usr/adm
 
 find $RPM_BUILD_ROOT -name CVS -type d | xargs rm -rf
 
 # A sample mpi program (hello world)
-$RPM_BUILD_DIR/%{name}-%{version}/bin/mpicc -I$RPM_BUILD_ROOT/usr/include -L$RPM_BUILD_ROOT%_libdir %{SOURCE2} -o $RPM_BUILD_DIR/%{name}-%{version}/test_mpi.%{name}
+%{_builddir}/%{name}-%{version}/bin/mpicc -I$RPM_BUILD_ROOT/usr/include -L$RPM_BUILD_ROOT%_libdir %{SOURCE2} -o %{_builddir}/%{name}-%{version}/test_mpi.%{name}
 
 cd $RPM_BUILD_ROOT/%{_libdir}
 rm libpmpich.so*
