@@ -3,13 +3,13 @@
 Summary:	A high-performance implementation of MPI
 Name:		mpich
 Version:	3.1
-Release:	2%{?dist}
+Release:	3%{?dist}
 License:	MIT
 
 URL:		http://www.mpich.org/
 
 Source0:	http://www.mpich.org/static/downloads/%{version}/%{name}-%{version}.tar.gz
-Source1:	mpich.macros	
+Source1:	macros.mpich
 Source2:	%{name}.rpmlintrc
 Patch0:		mpich-modules.patch
 
@@ -187,8 +187,8 @@ EOF
 cp -p %{buildroot}%{_sysconfdir}/profile.d/mpich-%{_arch}.{sh,csh}
  
 # Install the RPM macros
-mkdir -p %{buildroot}%{_rpmconfigdir}/macros.d
-cp -p %{SOURCE1} %{buildroot}%{_rpmconfigdir}/macros.d/macros.%{name}
+mkdir -p %{buildroot}%{_sys_macros_dir}
+cp -p %{SOURCE1} %{buildroot}%{_sys_macros_dir}
 
 find %{buildroot} -type f -name "*.la" -exec rm -f {} ';'
 rm -f %{buildroot}%{_libdir}/%{name}/lib/lib{*mpich*,opa,mpl}.a
