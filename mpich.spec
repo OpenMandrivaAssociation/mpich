@@ -1,371 +1,309 @@
-%define	name	mpich
-%define	version 1.2.5.2
-%define release	%mkrel 14
-%define	lib_name_orig	lib%{name}
-%define	lib_major	1
-%define	lib_name	%mklibname %{name} %{lib_major}
-%define	mpihome		%{_localstatedir}/lib/mpi
+%{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print get_python_lib(1)")}
 
-Name: 		%{name}
-Summary: 	Portable implementation of MPI
-Version: 	%{version}
-Release: 	%{release}
-Source0: 	%{name}-%{version}.tar.bz2
-Source1: 	rhosts.mpi
-Source2:	test_mpi.c
-Patch0: 	%{name}-1.2.5-sysconfdir.patch.bz2
-Patch1: 	%{name}-1.2.5-datadir.patch.bz2
-Patch2:		%{name}-1.2.5-all.patch.bz2
-Patch3:		%{name}-1.2.5-mpiinstall.patch.bz2
-Patch4:		%{name}-1.2.5.2-fix-bug8697.patch.bz2
-Patch5:		%{name}-1.2.5.2-fix-bug8713.patch.bz2
-Patch6:		%{name}-1.2.5.2-skip-rsh-check.patch.bz2
-Patch7:		%{name}-1.2.5-mpiinstall-lib64.patch.bz2
-Patch8:		%{name}-1.2.5-mpeinstall-lib64.patch.bz2
-URL: 		http://www-unix.mcs.anl.gov/mpi/mpich/
-License:	BSD-style 
-Group: 		System/Cluster
-BuildRoot: 	%{_tmppath}/%{name}-%{version}-%{release}-buildroot
-Requires: 	rsh, xinetd, rsh-server, %{lib_name} = %{version}-%{release}
-Requires(post,preun):	rpm-helper
-BuildRequires:	gcc >= 3.2, gcc3.3-g77 >= 3.2
+Summary:	A high-performance implementation of MPI
+Name:		mpich
+Version:	3.1
+Release:	2%{?dist}
+License:	MIT
+
+URL:		http://www.mpich.org/
+
+Source0:	http://www.mpich.org/static/downloads/%{version}/%{name}-%{version}.tar.gz
+Source1:	mpich.macros	
+Source2:	%{name}.rpmlintrc
+Patch0:		mpich-modules.patch
+
+BuildRequires:	gcc-gfortran
+BuildRequires:  pkgconfig(hwloc) >= 1.8
+%ifnarch s390 s390x aarch64
+BuildRequires:	valgrind-devel
+%endif
+Provides:	mpi
+Provides:	mpich2 = 3.0.1
+Obsoletes:	mpich2 < 3.0
+Requires:	environment-modules
 
 %description
-MPICH is a freely available, portable implementation of MPI, the Standard 
-for message-passing libraries.
-MPICH-A Portable Implementation of MPI is a MPI Standard conforming library 
-that was developed by the Argonne National Laboratory. It allows different 
-processes across a network of workstations to communicate using specific 
-message passing functions. It includes libraries, parallel debugging tools 
-and docs.
+MPICH is a high-performance and widely portable implementation of the Message
+Passing Interface (MPI) standard (MPI-1, MPI-2 and MPI-3). The goals of MPICH
+are: (1) to provide an MPI implementation that efficiently supports different
+computation and communication platforms including commodity clusters (desktop
+systems, shared-memory systems, multicore architectures), high-speed networks
+(10 Gigabit Ethernet, InfiniBand, Myrinet, Quadrics) and proprietary high-end
+computing systems (Blue Gene, Cray) and (2) to enable cutting-edge research in
+MPI through an easy-to-extend modular framework for other derived
+implementations.
 
-This package provides the libraries that use the standard p4 device.
+The mpich binaries in this RPM packages were configured to use the default
+process manager (Hydra) using the default device (ch3). The ch3 device
+was configured with support for the nemesis channel that allows for
+shared-memory and TCP/IP sockets based communication.
 
-%package -n	mpich-doc
-Summary:	Documentation for developing programs that will use MPICH
-Group:		Development/Other
+This build also include support for using the 'module environment' to select
+which MPI implementation to use when multiple implementations are installed.
+If you want MPICH support to be automatically loaded, you need to install the
+mpich-autoload package.
 
-%description -n mpich-doc
-MPICH is a freely available, portable implementation of MPI, the Standard 
-for message-passing libraries.
-MPICH-A Portable Implementation of MPI is a MPI Standard conforming library 
-that was developed by the Argonne National Laboratory. It allows different 
-processes across a network of workstations to communicate using specific 
-message passing functions. It includes libraries, parallel debugging tools 
-and docs.
+%package autoload
+Summary:	Load mpich automatically into profile
 
-This package provides the documentation needed to develop
-applications using the MPICH libraries.
+Requires:	mpich = %{version}-%{release}
+Provides:	mpich2-autoload = 3.0.1
+Obsoletes:	mpich2-autoload < 3.0
 
-%package -n	%{lib_name}
-Summary:	Shared Libraries for MPICH
-Group:		Development/Other
-Provides:	%{lib_name}
+%description autoload
+This package contains profile files that make mpich automatically loaded.
 
-%description  -n %{lib_name}
-Shared Libraries for MPICH
+%package devel
+Summary:	Development files for mpich
 
-%package -n	%{lib_name}-devel
-Summary:	Headers for developing programs that will use MPICH
-Group:		Development/Other
-Requires:	mpich = %{version}-%{release}, %{lib_name} = %{version}-%{release}
-Provides:	%{lib_name}-devel
-Provides:	%name-devel
+Provides:	%{name}-devel-static = %{version}-%{release}
+Requires:	%{name} = %{version}-%{release}
+Requires:	pkgconfig
+Requires:	gcc-gfortran 
+Provides:	mpich2-devel = 3.0.1
+Obsoletes:	mpich2-devel < 3.0
 
-%description -n %{lib_name}-devel
-MPICH is a freely available, portable implementation of MPI, the Standard 
-for message-passing libraries.
-MPICH-A Portable Implementation of MPI is a MPI Standard conforming library 
-that was developed by the Argonne National Laboratory. It allows different 
-processes across a network of workstations to communicate using specific 
-message passing functions. It includes libraries, parallel debugging tools 
-and docs.
+%description devel
+Contains development headers and libraries for mpich
 
-This package provides the static libraries and header files needed to compile
-applications using the MPICH libraries.
+%package doc
+Summary:	Documentations and examples for mpich
 
-%package -n	mpicc
-Summary:	The MPICH wrapper over the C compiler
-Group:		Development/C
-Requires:	gcc >= 3.2, %{lib_name}-devel = %{version}-%{release}
+BuildArch:	noarch
+Requires:	%{name}-devel = %{version}-%{release}
+Provides:	mpich2-doc = 3.0.1
+Obsoletes:	mpich2-doc < 3.0
 
-%description -n mpicc
-MPICH is a freely available, portable implementation of MPI, the Standard 
-for message-passing libraries.
-MPICH-A Portable Implementation of MPI is a MPI Standard conforming library 
-that was developed by the Argonne National Laboratory. It allows different 
-processes across a network of workstations to communicate using specific 
-message passing functions. It includes libraries, parallel debugging tools 
-and docs.
+%description doc
+Contains documentations, examples and man-pages for mpich
 
-This package provides the shell script mpicc, with headers, which allows to
-compile C programs using the MPICH libraries.
+# We only compile with gcc, but other people may want other compilers.
+# Set the compiler here.
+%{!?opt_cc: %global opt_cc gcc}
+%{!?opt_fc: %global opt_fc gfortran}
+%{!?opt_f77: %global opt_f77 gfortran}
+# Optional CFLAGS to use with the specific compiler...gcc doesn't need any,
+# so uncomment and undefine to NOT use
+%{!?opt_cc_cflags: %global opt_cc_cflags %{optflags}}
+%{!?opt_fc_fflags: %global opt_fc_fflags %{optflags}}
+#%{!?opt_fc_fflags: %global opt_fc_fflags %{optflags} -I%{_fmoddir}}
+%{!?opt_f77_fflags: %global opt_f77_fflags %{optflags}}
 
-%package -n	mpic++
-Summary:	The MPICH wrapper over the C++ compiler
-Group:		Development/C++
-Requires:	gcc-c++ >= 3.2, %{lib_name}-devel = %{version}-%{release}
+%ifarch %ix86
+%global __isa_bits	32
+%endif
+%ifarch x86_64
+%global __isa_bits	64
+%endif
 
-%description -n mpic++
-MPICH is a freely available, portable implementation of MPI, the Standard 
-for message-passing libraries.
-MPICH-A Portable Implementation of MPI is a MPI Standard conforming library 
-that was developed by the Argonne National Laboratory. It allows different 
-processes across a network of workstations to communicate using specific 
-message passing functions. It includes libraries, parallel debugging tools 
-and docs.
+%ifarch s390
+%global m_option -m31
+%else
+%global m_option -m%{__isa_bits}
+%endif
 
-This package provides the shell script mpiCC, with headers, which allows to
-compile C++ programs using the MPICH libraries.
+%ifarch %{arm} aarch64
+%global m_option ""
+%endif
 
-%package -n	mpif77
-Summary:	The MPICH wrapper over the Fortran 77 compiler
-Group:		Development/Other
-Requires:	gcc3.3-g77 >= 3.2, %{lib_name}-devel = %{version}-%{release}
+%ifarch %{ix86} x86_64
+%global selected_channels ch3:nemesis
+%else
+%global selected_channels ch3:sock
+%endif
 
-%description -n mpif77
-MPICH is a freely available, portable implementation of MPI, the Standard 
-for message-passing libraries.
-MPICH-A Portable Implementation of MPI is a MPI Standard conforming library 
-that was developed by the Argonne National Laboratory. It allows different 
-processes across a network of workstations to communicate using specific 
-message passing functions. It includes libraries, parallel debugging tools 
-and docs.
-
-This package provides the shell script mpif77, with headers, which allows to
-compile Fortran 77 (NOT Fortran 90!) programs using the MPICH libraries.
-
+%ifarch %{ix86} x86_64 s390 %{arm} aarch64
+%global XFLAGS -fPIC
+%endif
 
 %prep
 %setup -q
-%patch0 -p1 
-%patch1 -p1
-#a%patch2 -p0
-%patch3 -p0
-%patch4 -p0
-%patch5 -p0
-%patch6 -p1 -b .peroyvind
-%patch7 -p0 
-%patch8 -p0
-
-find -name .cvsignore | xargs rm -rf
-find -name CVS -type d | xargs rm -rf
-
-%pre
-/usr/sbin/groupadd -g 12384 -r -f mpi > /dev/null 2>&1 ||:
-/usr/sbin/useradd -u 12384 -g mpi -d %{mpihome} -r -s /bin/bash mpi -p "" -m > /dev/null 2>&1 ||:
-
-%postun
-%_postun_userdel mpi
-
-%post
-STATUS=$(cat /etc/xinetd.d/rsh  | grep disable | cut -d "=" -f 2)
-if [ $STATUS == "yes" ]; then
-echo "Warning !!"
-echo "The rsh daemon is disabled in your xinetd config file(/etc/xinetd.d/rsh), please activate it."
-fi
-echo "Remember that you should create a .rhosts in your home directory."
-echo "Look at .rhosts in the doc directory for a sample configuration"
-echo "A mpi user has been created, change it's home directory to a network file system with the other nodes"
-
-# automatically set mpi variable
-TEST_MPI_ENV=`grep MPI /etc/bashrc`
-if [ -z "$TEST_MPI_ENV" ] ; then
-	echo "# MPI environment" >> /etc/bashrc
-	echo "MPIRUN_HOME=/usr/bin" >> /etc/bashrc
-	echo "export MPIRUN_HOME" >> /etc/bashrc
-fi
-
+%patch0 -p0 -b .modu
 
 %build
-CFLAGS=$RPM_OPT_FLAGS; export CFLAGS;
-[ -f configure.in ] && libtoolize --copy --force;
+%configure	\
+	--enable-sharedlibs=gcc					\
+	--enable-shared						\
+	--enable-lib-depend					\
+	--disable-rpath						\
+	--enable-fc						\
+	--with-device=%{selected_channels}			\
+	--with-pm=hydra:gforker					\
+	--includedir=%{_includedir}/%{name}-%{_arch}		\
+	--bindir=%{_libdir}/%{name}/bin				\
+	--libdir=%{_libdir}/%{name}/lib				\
+	--datadir=%{_datadir}/%{name}				\
+	--mandir=%{_mandir}/%{name}				\
+	--docdir=%{_datadir}/%{name}/doc			\
+	--htmldir=%{_datadir}/%{name}/doc			\
+	--with-hwloc-prefix=system				\
+	FC=%{opt_fc}						\
+	F77=%{opt_f77}						\
+	CFLAGS="%{m_option} -O2 %{?XFLAGS}"			\
+	CXXFLAGS="%{m_option} -O2 %{?XFLAGS}"			\
+	FCFLAGS="%{m_option} -O2 %{?XFLAGS}"			\
+	FFLAGS="%{m_option} -O2 %{?XFLAGS}"			\
+	LDFLAGS='-Wl,-z,noexecstack'				\
+	MPICHLIB_CFLAGS="%{?opt_cc_cflags}"			\
+	MPICHLIB_CXXFLAGS="%{optflags}"				\
+	MPICHLIB_FCFLAGS="%{?opt_fc_fflags}"			\
+	MPICHLIB_FFLAGS="%{?opt_f77_fflags}"	
+#	MPICHLIB_LDFLAGS='-Wl,-z,noexecstack'			\
+#	MPICH_MPICC_FLAGS="%{m_option} -O2 %{?XFLAGS}"	\
+#	MPICH_MPICXX_FLAGS="%{m_option} -O2 %{?XFLAGS}"	\
+#	MPICH_MPIFC_FLAGS="%{m_option} -O2 %{?XFLAGS}"	\
+#	MPICH_MPIF77_FLAGS="%{m_option} -O2 %{?XFLAGS}"
+#	--with-openpa-prefix=embedded				\
 
-./configure --prefix=%{_prefix} \
-        --exec-prefix=%{_exec_prefix} \
-        --bindir=%{_bindir} \
-	--sbindir=%{_sbindir} \
-        --datadir=%{_datadir}/mpich/ \
-        --includedir=%{_includedir} \
-	--libdir=%{_libdir} \
-        --sharedstatedir=%{_sharedstatedir} \
-	--docdir=%{_datadir}/doc/%{name}-%{version} \
-	--htmldir=%{_datadir}/doc/%{name}-%{version}/www \
-        --mandir=%{_mandir} \
- 	--sharedlib=%{_libdir} \
-        --enable-c++ \
-        --enable-f77 \
-        --with-arch=LINUX \
-        --with-device=ch_p4 \
-        --with-comm=ch_p4 \
-        --enable-sharedlib \
- 	--enable-debug \
-	--disable-weak-symbols \
-	--without-java
+#	FCFLAGS="%{?opt_fc_fflags} -I%{_fmoddir}/%{name} %{?XFLAGS}"	\
 
-make
+#Try and work around 'unused-direct-shlib-dependency' rpmlint warnning
+sed -i -e 's! -shared ! -Wl,--as-needed\0!g' libtool
 
+make %{?_smp_mflags} VERBOSE=1
 
 %install
-rm -rf $RPM_BUILD_ROOT
+make DESTDIR=%{buildroot} install
 
-export MPICH_INCLUDE_PROFLIB="yes"
+mv %{buildroot}%{_libdir}/%{name}/lib/pkgconfig %{buildroot}%{_libdir}/
+chmod -x %{buildroot}%{_libdir}/pkgconfig/*.pc
 
-#Changing libdir for compilators
-for i in $(ls %{_builddir}/%{name}-%{version}/bin/mpi*); do
-perl -pi -e "s|libdir=/usr/lib|libdir=$RPM_BUILD_ROOT/usr/lib|" $i
-done
+#mkdir -p %{buildroot}/%{_fmoddir}/%{name}
+#mv  %{buildroot}%{_includedir}/%{name}/*.mod %{buildroot}/%{_fmoddir}/%{name}/
 
-#Patching UseSharedLib for using libmpichfarg by default
-perl -pi -e 's|UseSharedLib\=\$\{MPICH_USE_SHLIB\-no\}|UseSharedLib\=yes|' %{_builddir}/%{name}-%{version}/bin/mpif77
-perl -pi -e 's|UseSharedLib\=\$\{MPICH_USE_SHLIB\-no\}|UseSharedLib\=yes|' %{_builddir}/%{name}-%{version}/src/fortran/src/mpif77
+# Install the module file
+mkdir -p %{buildroot}%{_sysconfdir}/modulefiles/mpi
+mkdir -p %{buildroot}%{python_sitearch}/%{name}
+cp -pr src/packaging/envmods/mpich.module %{buildroot}%{_sysconfdir}/modulefiles/mpi/%{name}-%{_arch}
+sed -i 's#'%{_bindir}'#'%{_libdir}/%{name}/bin'#;s#@LIBDIR@#'%{_libdir}'#;s#@pysitearch@#'%{python_sitearch}'#;s#@ARCH@#'%{_arch}'#' %{buildroot}%{_sysconfdir}/modulefiles/mpi/%{name}-%{_arch}
+cp -p %{buildroot}%{_sysconfdir}/modulefiles/mpi/%{name}-%{_arch} %{buildroot}%{_sysconfdir}/modulefiles/%{name}-%{_arch}
 
+mkdir -p %{buildroot}%{_sysconfdir}/profile.d
+cat << EOF > %{buildroot}%{_sysconfdir}/profile.d/mpich-%{_arch}.sh
+# Load mpich environment module
+module load mpi/%{name}-%{_arch}
+EOF
+cp -p %{buildroot}%{_sysconfdir}/profile.d/mpich-%{_arch}.{sh,csh}
+ 
+# Install the RPM macros
+mkdir -p %{buildroot}%{_rpmconfigdir}/macros.d
+cp -p %{SOURCE1} %{buildroot}%{_rpmconfigdir}/macros.d/macros.%{name}
 
-#Patching prefix for mpd
-#perl -pi -e "s|exec_prefix \=.*|exec_prefix \=$RPM_BUILD_ROOT/usr/|" %{_builddir}/%{name}-%{version}/mpid/mpd/Makefile
+find %{buildroot} -type f -name "*.la" -exec rm -f {} ';'
+rm -f %{buildroot}%{_libdir}/%{name}/lib/lib{*mpich*,opa,mpl}.a
 
-
-make install "PREFIX=$RPM_BUILD_ROOT%{_prefix}\
-	     -sysconfpath=$RPM_BUILD_ROOT/%{_sysconfdir}/mpich/ \
-	     -datapath=$RPM_BUILD_ROOT/%{_datadir}/mpich/ \
-	     -shliblocal=$RPM_BUILD_ROOT/%{_libdir} \
-	     -soft"
-
-
-#Changing back libdir for compilators
-for i in $(ls $RPM_BUILD_ROOT/usr/bin/mpi*); do
-perl -pi -e "s|libdir=$RPM_BUILD_ROOT/usr/lib|libdir=/usr/lib|" $i
-done
-
-#Activiating PMPI patches
-for i in $(ls %{_builddir}/%{name}-%{version}/bin/*); do
-perl -pi -e 's|MPI_WITH_PMPI\=.*|MPI_WITH_PMPI\=\"yes\" \n
-MPICH_INCLUDE_PROFLIB\=\"yes\" \n|' $i
-done
-
-
-for rep in $RPM_BUILD_ROOT/etc/mpich $RPM_BUILD_ROOT%{_bindir} $RPM_BUILD_ROOT%{_sbindir} $RPM_BUILD_ROOT/usr/examples
-do
-  for file in $rep/*
-  do
-	if [ -f "$file" ];
-	then
-		perl -pi -e 's|%buildroot||g' "$file"
-	fi
-  done
-done
-
-#for i in $(ls $RPM_BUILD_ROOT/usr/bin/*); do
-#perl -pi -e 's|MPI_WITH_PMPI\=\"yes\".*|MPI_WITH_PMPI\=yes \n MPICH_INCLUDE_PROFLIB\=yes|' $i
-#done
-
-HOSTNAME=`hostname`
-perl -pi -e "s|$HOSTNAME||g" "$RPM_BUILD_ROOT%{_datadir}/mpich/machines.LINUX"
-
-mkdir -p $RPM_BUILD_ROOT%{_docdir}
-mkdir -p $RPM_BUILD_ROOT/%{mpihome}
-
-install -m644 %{SOURCE1} %{_builddir}/%{name}-%{version}/rhosts
-
-mkdir -p $RPM_BUILD_ROOT/usr/adm
-
-find $RPM_BUILD_ROOT -name CVS -type d | xargs rm -rf
-
-# A sample mpi program (hello world)
-%{_builddir}/%{name}-%{version}/bin/mpicc -I$RPM_BUILD_ROOT/usr/include -L$RPM_BUILD_ROOT%_libdir %{SOURCE2} -o %{_builddir}/%{name}-%{version}/test_mpi.%{name}
-
-cd $RPM_BUILD_ROOT/%{_libdir}
-rm libpmpich.so*
-ln -sf libmpich.so.1.0 libmpich.so
-ln -sf libfmpich.so.1.0 libfmpich.so
-
-#Cleaning uncessary files 
-rm -f  $RPM_BUILD_ROOT%{_mandir}/mandesc*
-rm -rf $RPM_BUILD_ROOT%{_libdir}/shared
-rm -rf $RPM_BUILD_ROOT%{_datadir}/examples
-rm -rf $RPM_BUILD_ROOT%{_datadir}/upshot
-rm -rf $RPM_BUILD_ROOT%{_docdir}
-
-%clean
-rm -rf $RPM_BUILD_ROOT
-
-%if %mdkversion < 200900
-%postun -n %{lib_name} -p /sbin/ldconfig
-%endif
-
-%if %mdkversion < 200900
-%post -n %{lib_name} -p /sbin/ldconfig
-%endif
+%check
+make check
 
 %files
-%defattr(-,root,root,755)
-%doc COPYRIGHT 
-%doc test_mpi.mpich
-%doc rhosts
-%{_sbindir}/*
-%{_bindir}/mpirun*
-%{_bindir}/mpereconfig
-%{_bindir}/mpereconfig.dat
-%{_bindir}/mpereconfig.in
-%{_bindir}/mpiman
-%{_bindir}/mpireconfig
-%{_bindir}/mpireconfig.dat
-%{_bindir}/tarch
-%{_bindir}/tdevice
-%{_bindir}/serv_p4
-%{_bindir}/clog2alog
-%{_bindir}/clog2slog
-%{_bindir}/clog_print
-%{_bindir}/slog_print
-%{_bindir}/logviewer
-%config(noreplace) %{_sysconfdir}/mpich/*
-%config(noreplace) %{_datadir}/mpich/*
-%{_mandir}/man1/mpirun.1*
-%{_mandir}/man1/mpiman.1*
-%{_mandir}/man1/mpireconfig.1*
-%{_mandir}/man1/tstmachines.1*
-%{_mandir}/man1/chp4_servs.1*
-%{_mandir}/man1/cleanipcs.1*
-%{_mandir}/man1/MPI.1*
-%{_mandir}/man1/Jumpshots.1*
-/usr/adm
+%doc CHANGES COPYRIGHT README README.envvar RELEASE_NOTES
+%dir %{_libdir}/%{name}
+%dir %{_libdir}/%{name}/lib
+%dir %{_libdir}/%{name}/bin
+%{_libdir}/%{name}/lib/*.so.*
+%{_libdir}/%{name}/bin/*
+%dir %{python_sitearch}/%{name}
+%dir %{_mandir}/%{name}
+%doc %{_mandir}/%{name}/man1/
+%{_sysconfdir}/modulefiles/mpi/
+%{_sysconfdir}/modulefiles/%{name}-%{_arch}
 
-%files -n %{lib_name}
-%defattr(-,root,root,755)
-%{_libdir}/*.so.*
+%files autoload
+%{_sysconfdir}/profile.d/mpich-%{_arch}.*
 
-%files -n mpich-doc
-%defattr(644,root,root,755)
-%doc doc/* examples www  
+%files devel
+%{_includedir}/%{name}-%{_arch}/
+##%{_fmoddir}/%{name}/
+%{_libdir}/%{name}/lib/*.so
+%{_libdir}/pkgconfig/%{name}.pc
+%{_libdir}/pkgconfig/openpa.pc
+%{_rpmconfigdir}/macros.d/macros.%{name}
 
-%files -n %{lib_name}-devel
-%defattr(-,root,root)
-%doc COPYRIGHT
-%{_mandir}/man3/*.3*
-%{_mandir}/man4/*.4*
-%dir %{_includedir}/mpi2c++
-%{_includedir}/mpi2c++/*.h
-%{_includedir}/*.h
-%{_libdir}/*.a
-%{_libdir}/*.o
-%{_libdir}/*.so
+%files doc
+%dir %{_datadir}/%{name}
+%{_datadir}/%{name}/doc/
+%{_mandir}/%{name}/man3/
 
-%files -n mpicc
-%defattr(-,root,root,755)
-%doc COPYRIGHT
-%{_bindir}/mpicc
-%{_mandir}/man1/mpicc.1*
+%changelog
+* Fri Feb 21 2014 Ville Skyttä <ville.skytta@iki.fi> - 3.1-2
+- Install rpm macros to %%{_rpmconfigdir}/macros.d as non-%%config.
 
-%files -n mpic++
-%defattr(-,root,root,755)
-%doc COPYRIGHT
-%{_bindir}/mpiCC
-%{_mandir}/man1/mpiCC.1*
+* Fri Feb 21 2014 Deji Akingunola <dakingun@gmail.com> - 3.1-1
+- Update to 3.1
 
-%files -n mpif77
-%defattr(-,root,root,755)
-%doc COPYRIGHT
-%{_bindir}/mpif77
-%{_bindir}/mpif90
-%{_mandir}/man1/mpif77.1*
-%{_mandir}/man1/mpif90.1*
+* Mon Jan  6 2014 Peter Robinson <pbrobinson@fedoraproject.org> 3.0.4-7
+- Set the aarch64 compiler options
+
+* Fri Dec 13 2013 Peter Robinson <pbrobinson@fedoraproject.org> 3.0.4-6
+- Now have valgrind on ARMv7
+- No valgrind on aarch64
+
+* Fri Aug 23 2013 Orion Poplawski <orion@cora.nwra.com> - 3.0.4-5
+- Add %%check
+
+* Sat Aug 03 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 3.0.4-4
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_20_Mass_Rebuild
+
+* Sat Jul 20 2013 Deji Akingunola <dakingun@gmail.com> - 3.0.4-3
+- Add proper Provides and Obsoletes for the sub-packages  
+
+* Thu Jul 18 2013 Deji Akingunola <dakingun@gmail.com> - 3.0.4-2
+- Fix some of the rpmlint warnings from package review (BZ #973493) 
+
+* Wed Jun 12 2013 Deji Akingunola <dakingun@gmail.com> - 3.0.4-1
+- Update to 3.0.4
+
+* Thu Feb 21 2013 Deji Akingunola <dakingun@gmail.com> - 3.0.2-1
+- Update to 3.0.2
+- Rename to mpich.
+- Drop check for old alternatives' installation
+
+* Thu Feb 14 2013 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.5-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_19_Mass_Rebuild
+
+* Thu Nov 1 2012 Orion Poplawski <orion@cora.nwra.com> - 1.5-1
+- Update to 1.5
+- Drop destdir-fix and mpicxx-und patches
+- Update rpm macros to use the new module location
+
+* Wed Oct 31 2012 Orion Poplawski <orion@cora.nwra.com> - 1.4.1p1-9
+- Install module file in mpi subdirectory and conflict with other mpi modules
+- Leave existing module file location for backwards compatibility for a while
+
+* Fri Jul 20 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.4.1p1-8
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_18_Mass_Rebuild
+
+* Wed Feb 15 2012 Peter Robinson <pbrobinson@fedoraproject.org> - 1.4.1p1-7
+- Rebuild for new hwloc
+
+* Wed Feb 15 2012 Peter Robinson <pbrobinson@fedoraproject.org> - 1.4.1p1-6
+- Update ARM build configuration
+
+* Fri Jan 13 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.4.1p1-5
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_17_Mass_Rebuild
+
+* Mon Jan  2 2012 Jussi Lehtola <jussilehtola@fedoraproject.org> - 1.4.1p1-4
+- Bump spec.
+
+* Wed Nov 16 2011 Jussi Lehtola <jussilehtola@fedoraproject.org> - 1.4.1p1-3
+- Comply to MPI guidelines by separating autoloading into separate package
+  (BZ #647147).
+
+* Tue Oct 18 2011 Deji Akingunola <dakingun@gmail.com> - 1.4.1p1-2
+- Rebuild for hwloc soname bump.
+
+* Sun Sep 11 2011 Deji Akingunola <dakingun@gmail.com> - 1.4.1p1-1
+- Update to 1.4.1p1 patch update
+- Add enable-lib-depend to configure flags
+
+* Sat Aug 27 2011 Deji Akingunola <dakingun@gmail.com> - 1.4.1-1
+- Update to 1.4.1 final
+- Drop the mpd subpackage, the PM is no longer supported upstream
+- Fix undefined symbols in libmpichcxx (again) (#732926)
+
+* Wed Aug 03 2011 Jussi Lehtola <jussilehtola@fedoraproject.org> - 1.4-2
+- Respect environment module guidelines wrt placement of module file.
+
+* Fri Jun 17 2011 Deji Akingunola <dakingun@gmail.com> - 1.4-1
+- Update to 1.4 final

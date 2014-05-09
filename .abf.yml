@@ -1,4 +1,2 @@
 sources:
-  "mpich-1.2.5.2.tar.bz2:"	0b8faeaa6c794da2505473ae7e824df1fb6c3a1b
-  "rhosts.mpi:"	c74e6637718ea965830f962f0cb72f0ae0282182
-  "test_mpi.c:"	ecc96377060105f29af942da6b26de4eccbfb2ff
+  mpich-3.1.tar.gz: ac3e79482b7645f9512f687404e9be29855258e9
