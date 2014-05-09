@@ -188,7 +188,7 @@ cp -p %{buildroot}%{_sysconfdir}/profile.d/mpich-%{_arch}.{sh,csh}
  
 # Install the RPM macros
 mkdir -p %{buildroot}%{_sys_macros_dir}
-cp -p %{SOURCE1} %{buildroot}%{_sys_macros_dir}
+cp -p %{SOURCE1} %{buildroot}%{_sys_macros_dir}/%{name}.macros
 
 find %{buildroot} -type f -name "*.la" -exec rm -f {} ';'
 rm -f %{buildroot}%{_libdir}/%{name}/lib/lib{*mpich*,opa,mpl}.a
@@ -218,7 +218,7 @@ make check
 %{_libdir}/%{name}/lib/*.so
 %{_libdir}/pkgconfig/%{name}.pc
 %{_libdir}/pkgconfig/openpa.pc
-%{_rpmconfigdir}/macros.d/macros.%{name}
+%{_sys_macros_dir}/%{name}.macros
 
 %files doc
 %dir %{_datadir}/%{name}
