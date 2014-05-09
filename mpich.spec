@@ -122,7 +122,7 @@ Contains documentations, examples and man-pages for mpich
 %patch0 -p0 -b .modu
 
 %build
-%configure	\
+%configure2_5x	\
 	--enable-sharedlibs=gcc					\
 	--enable-shared						\
 	--enable-lib-depend					\
