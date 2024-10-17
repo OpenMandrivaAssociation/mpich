@@ -6,7 +6,7 @@ Version:	3.1
 Release:	3%{?dist}
 License:	MIT
 
-URL:		http://www.mpich.org/
+URL:		https://www.mpich.org/
 
 Source0:	http://www.mpich.org/static/downloads/%{version}/%{name}-%{version}.tar.gz
 Source1:	macros.mpich
